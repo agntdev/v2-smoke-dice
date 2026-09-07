@@ -7,7 +7,7 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Show this user's total_rolls and best_roll as a short summary"
+              "text": "No rolls yet — tap 🎲 Roll to start."
             }
           }
         ],
