@@ -1,0 +1,20 @@
+[
+  {
+    "name": "/roll",
+    "steps": [
+      {
+        "expect": [
+          {
+            "method": "sendMessage",
+            "payload": {
+              "text": "Roll a six-sided die and show result with a \"Roll again\" inline button"
+            }
+          }
+        ],
+        "send": {
+          "text": "/roll"
+        }
+      }
+    ]
+  }
+]
