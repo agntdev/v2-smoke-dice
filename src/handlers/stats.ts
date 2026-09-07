@@ -1,15 +1,32 @@
 import { Composer } from "grammy";
+import type { Ctx } from "../bot.js";
+import { registerMainMenuItem } from "../toolkit/index.js";
+import { statsFor } from "../dice.js";
 
-// SCAFFOLD — generated from the bot blueprint BEFORE the agent runs.
-// Keep a LIVE registration (.command / .callbackQuery / …) so this feature is
-// never an empty stub. Replace the reply body with real logic + copy; if you
-// change the user-facing text, update tests/specs to match EXACTLY.
-// Do NOT rewrite src/bot.ts — buildBot() already auto-loads this module.
+registerMainMenuItem({ label: "📊 Stats", data: "dice:stats", order: 20 });
 
-const composer = new Composer();
+const composer = new Composer<Ctx>();
+
+async function showStats(ctx: Ctx): Promise<void> {
+  try {
+    const stats = await statsFor(ctx);
+    if (stats.totalRolls === 0) {
+      await ctx.reply("No rolls yet — tap 🎲 Roll to start.");
+      return;
+    }
+    await ctx.reply(`Rolls: ${stats.totalRolls} · Best: ${stats.bestRoll}`);
+  } catch {
+    await ctx.reply("Couldn't fetch your stats — try again in a moment.");
+  }
+}
 
 composer.command("stats", async (ctx) => {
-  await ctx.reply("Show this user's total_rolls and best_roll as a short summary");
+  await showStats(ctx);
+});
+
+composer.callbackQuery("dice:stats", async (ctx) => {
+  await ctx.answerCallbackQuery();
+  await showStats(ctx);
 });
 
 export default composer;

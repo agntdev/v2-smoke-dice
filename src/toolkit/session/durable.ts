@@ -51,6 +51,24 @@ interface Reminder {
   text: string;
 }
 
+/** Durable per-user dice record. A Dice request is routed to one DO per Telegram
+ * user, so read-modify-write updates are serialized without key scans or locks. */
+interface DiceRecord {
+  telegramId: number;
+  displayName?: string;
+  firstSeen: string;
+  totalRolls: number;
+  bestRoll: number;
+}
+
+interface DiceRollRequest {
+  result: number;
+  userId: number;
+  displayName?: string;
+  firstSeen: number;
+  timestamp: string;
+}
+
 /**
  * createDurableSessionStorage — a grammY StorageAdapter that routes each session
  * key to its own ChatDO instance. Pass to buildBot({ storage }) in the Worker.
@@ -126,6 +144,34 @@ export class ChatDO {
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
+
+    if (url.pathname === "/dice/stats" && request.method === "GET") {
+      const record = await this.state.storage.get<DiceRecord>("dice");
+      return Response.json({
+        totalRolls: record?.totalRolls ?? 0,
+        bestRoll: record?.bestRoll ?? 0,
+      });
+    }
+
+    if (url.pathname === "/dice/roll" && request.method === "POST") {
+      const body = (await request.json()) as DiceRollRequest;
+      if (
+        !Number.isInteger(body.result) || body.result < 1 || body.result > 6 ||
+        !Number.isInteger(body.userId) || body.userId <= 0
+      ) {
+        return new Response("invalid die result", { status: 400 });
+      }
+      const prior = await this.state.storage.get<DiceRecord>("dice");
+      const record: DiceRecord = {
+        telegramId: prior?.telegramId ?? body.userId,
+        ...(body.displayName ? { displayName: body.displayName } : prior?.displayName ? { displayName: prior.displayName } : {}),
+        firstSeen: prior?.firstSeen ?? body.timestamp,
+        totalRolls: (prior?.totalRolls ?? 0) + 1,
+        bestRoll: Math.max(prior?.bestRoll ?? 0, body.result),
+      };
+      await this.state.storage.put("dice", record);
+      return Response.json({ totalRolls: record.totalRolls, bestRoll: record.bestRoll });
+    }
 
     // Session storage (routed here by createDurableSessionStorage).
     if (url.pathname === "/session") {

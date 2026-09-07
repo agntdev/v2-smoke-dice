@@ -7,7 +7,9 @@
           {
             "method": "sendMessage",
             "payload": {
-              "text": "Roll a six-sided die and show result with a \"Roll again\" inline button"
+              "reply_markup": {
+                "inline_keyboard": [[{ "text": "Roll again", "callback_data": "roll:again" }]]
+              }
             }
           }
         ],

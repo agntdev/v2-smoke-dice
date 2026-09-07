@@ -7,7 +7,20 @@
         "expect": [
           {
             "method": "sendMessage",
-            "payload": { "text": "👋 Welcome! Tap a button below to get started." }
+            "payload": {
+              "text": "🎲 Ready to roll?",
+              "reply_markup": {
+                "inline_keyboard": [
+                  [
+                    { "text": "🎲 Roll", "callback_data": "dice:roll" },
+                    { "text": "📊 Stats", "callback_data": "dice:stats" }
+                  ],
+                  [
+                    { "text": "❓ Help", "callback_data": "menu:help" }
+                  ]
+                ]
+              }
+            }
           }
         ]
       }

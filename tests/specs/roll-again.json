@@ -1,18 +1,28 @@
 [
   {
-    "name": "Roll again",
+    "name": "Roll again sends a fresh result for the message owner",
     "steps": [
+      {
+        "send": { "text": "/roll" },
+        "expect": [{ "method": "sendMessage" }]
+      },
       {
         "expect": [
           {
+            "method": "answerCallbackQuery"
+          },
+          {
             "method": "sendMessage",
             "payload": {
-              "text": "Trigger another roll for the pressing user (inline callback)"
+              "reply_markup": {
+                "inline_keyboard": [[{ "text": "Roll again", "callback_data": "roll:again" }]]
+              }
             }
           }
         ],
         "send": {
-          "callback": "roll:again"
+          "callback": "roll:again",
+          "messageId": 1001
         }
       }
     ]
